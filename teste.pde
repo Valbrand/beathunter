@@ -7,6 +7,7 @@ PImage traya, well;
 StartScreen START_SCREEN;
 
 float GRAVITY = 30, PLAYER_CAMERA_DISTANCE = 400;
+float PIG_SPEED = 5;
 int TERRAIN_WIDTH = 600, PIT_WIDTH = 200, LEVEL_LENGTH = 10; 
 int LAND_TEXTURE_WIDTH = 150, LAND_TEXTURE_HEIGHT = 150, CURRENT_STATE = 0;
 int STANDING = 0, WALK = 1, JUMP = 2, ATTACK = 3;
@@ -80,4 +81,3 @@ void keyPressed() {
 void keyReleased() {
 	PLAYER.interactWithKeyReleased(keyCode);
 }
-

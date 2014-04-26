@@ -113,6 +113,7 @@ abstract class GameObject {
 
 	GameObject(float x, float y, float offX, float offY) {
 		float tw, xPos;
+		int i = 0;
 
 		this.offsetX = offX;
 		this.offsetY = offY;
@@ -124,7 +125,12 @@ abstract class GameObject {
 		}
 
 		xPos = this.getXPosition();
-		for(int i = 0; i < TERRAIN_LIST.length; i++) {
+		while(TERRAIN_LIST[i].getEndPosition() < xPos) {
+			i++;
+		}
+		this.currentTerrainIndex = i;
+
+		/*for(int i = 0; i < TERRAIN_LIST.length; i++) {
 			tw = (TERRAIN_LIST[i].getHeight() == 0 ? PIT_WIDTH : TERRAIN_WIDTH);
 
 			if(xPos < tw) {
@@ -133,7 +139,7 @@ abstract class GameObject {
 			}
 
 			xPos -= tw;
-		}
+		}*/
 	}
 
 	float getXPosition() {
@@ -295,6 +301,12 @@ abstract class GameObject {
 		this.offsetY = offY;
 	}
 
+	boolean isStanding() {
+		Terrain highestTerrain = this.getHighestTerrainBelow();
+
+		return highestTerrain.isSolid() && (height - this.center.getY() - this.centerToBottom()) == highestTerrain.getHeight();
+	}
+
 	float getScreenXPosition() {
 		float psx = 0, px = 0, ox = 0;
 
@@ -308,7 +320,7 @@ abstract class GameObject {
 	}
 
 	float getScreenYPosition() {
-		return this.getCenter().getY() + this.getOffsetX();
+		return this.getCenter().getY() + this.getOffsetY();
 	}
 
 	abstract void render();

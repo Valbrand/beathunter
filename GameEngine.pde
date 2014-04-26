@@ -12,11 +12,16 @@
 class GameEngine {
 	GameObject[] objects;
 	BackgroundLayer[] layers;
-	int objCount, nextObj;
+	Creature[] creatures;
+	int objCount, nextObj, creatureCount, nextCreature;
 
 	GameEngine(int maxSize) {
 		this.objects = new GameObject[maxSize];
 		this.objCount = this.nextObj = 0;
+
+		this.creatures = new Creature[maxSize];
+		this.creatureCount = this.nextCreature = 0;
+
 		this.layers = new BackgroundLayer[0];
 	}
 
@@ -48,6 +53,11 @@ class GameEngine {
 				previousIndex = i - ((TERRAIN_LIST[i - 1].getHeight() == 0) ? 2 : 1);
 
 				TERRAIN_LIST[i] = this.generateSolidTerrain(TERRAIN_LIST[previousIndex].getHeight(), startPos);
+
+				if(random(1) >= 0.33) {
+					Pig pig = new Pig((startPos + TERRAIN_LIST[i].getEndPosition()) / 2, TERRAIN_LIST[i].getMinimumHeight());
+					this.addEnemy(pig);
+				}
 			}
 		}
 	}
@@ -68,6 +78,10 @@ class GameEngine {
 	void processObjects() {
 		GameObject currentObject, otherObject;
 		float currentGroundHeight;
+
+		for(int i = 0; i < this.creatureCount; i++) {
+			this.creatures[i].behaviour();
+		}
 
 		for(int i = 0; i < this.objCount; i++) {
 			currentObject = this.objects[i];
@@ -159,6 +173,24 @@ class GameEngine {
 		}
 	}
 
+	void addEnemy(Creature newEnemy) {
+		this.addObject(newEnemy);
+
+		this.creatures[this.nextCreature] = newEnemy;
+
+		if(this.nextCreature < this.creatureCount) {
+			while(this.creatures[this.nextCreature].isEnabled() && this.nextCreature < this.creatureCount) {
+				this.nextCreature++;
+			}
+		} else {
+			this.nextCreature = ++this.creatureCount;
+		}
+
+		if(this.creatureCount == this.creatures.length) {
+			this.creatures = (Creature[]) expand(this.creatures, this.creatureCount * 2);
+		}
+	}
+
 	void collisionOccurred(GameObject anObject, GameObject otherObject) {
 		GameObject playerOrNull = null, other = null;
 
@@ -171,10 +203,27 @@ class GameEngine {
 		}
 
 		if(playerOrNull != null) {
-			for(int i = 0; i < TOKENS.length; i++) {
-				if(other == TOKENS[i]) {
-					JUNGLE_SOUNDS[i].unmute();
-					TOKENS[i].disable();
+			if(other instanceof Pig) {
+				float previousPlayerBottomPosition, currentPlayerBottomPosition, pigTopPosition;
+
+				currentPlayerBottomPosition = playerOrNull.getCenter().getY() + playerOrNull.centerToBottom();
+				previousPlayerBottomPosition = currentPlayerBottomPosition - playerOrNull.getSpeedY();
+				pigTopPosition = other.getCenter().getY() - other.centerToTop();
+
+				if(previousPlayerBottomPosition < pigTopPosition && currentPlayerBottomPosition >= pigTopPosition) {
+					playerOrNull.getCenter().setY(pigTopPosition - playerOrNull.centerToBottom());
+					PLAYER.executeJump();
+
+					other.disable();
+				} else {
+					this.changeState(3);
+				}
+			} else {
+				for(int i = 0; i < TOKENS.length; i++) {
+					if(other == TOKENS[i]) {
+						JUNGLE_SOUNDS[i].unmute();
+						TOKENS[i].disable();
+					}
 				}
 			}
 		}

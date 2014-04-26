@@ -109,12 +109,6 @@ class PlayerObject extends GameObject {
 		this.currentState = state;
 	}
 
-	boolean isStanding() {
-		Terrain highestTerrain = this.getHighestTerrainBelow();
-
-		return highestTerrain.isSolid() && (height - this.center.getY() - this.centerToBottom()) == highestTerrain.getHeight();
-	}
-
 	void jump() {
 		boolean willJump = true;
 
@@ -127,12 +121,16 @@ class PlayerObject extends GameObject {
 		}
 
 		if(willJump) {
-			this.setSpeedY(-(sqrt(2 * (GRAVITY / frameRate) * 150)));
-			this.visualStates[JUMP].reset();
-			this.currentState = JUMP;
-
-			this.playJumpSound();
+			executeJump();
 		}
+	}
+
+	void executeJump() {
+		this.setSpeedY(-(sqrt(2 * (GRAVITY / frameRate) * 150)));
+		this.visualStates[JUMP].reset();
+		this.currentState = JUMP;
+
+		this.playJumpSound();
 	}
 
 	void resetJumps() {
